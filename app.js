@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser'); 
 const passport = require('passport');
 const mongoose = require('mongoose');
 const config = require('./config/database');
@@ -23,10 +23,9 @@ mongoose.connection.on('error', (err) => {
 const app = express();
 
 const users = require('./routes/users');
-const product = require('./routes/product');
-const kids = require('./routes/kids');
-const men = require('./routes/men');
-const ladise = require('./routes/ladise');
+const men_product = require('./routes/men_products');
+const ladise_product = require('./routes/ladise_products');
+const kids_product = require('./routes/kids_products');
 
 // CORS Middleware
 app.use(cors());
@@ -45,19 +44,19 @@ app.use(passport.session());
 require('./config/passport')(passport);
 
 app.use('/users', users);
-app.use('/product', product);
-app.use('/men', men);
-app.use('/kids', kids);
-app.use('/ladise', ladise);
+app.use('/men_products', men_product);
+app.use('/ladise_products', ladise_product);
+app.use('/kids_products', kids_product);
+
 
 // Index Route
 app.get('/', (req, res) => {
   res.send('invaild endpoint');
 });
 
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'public/index.html'));
-// });
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
 
 // Start Server
 app.listen(port, () => {

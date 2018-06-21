@@ -15,7 +15,8 @@ var newUser = mongoose.Schema({
     email:{
         type:String,
         required:true
-    }
+    },
+    updated_date: { type: Date, default: Date.now }
 });
 
 const User = module.exports = mongoose.model('User', newUser);

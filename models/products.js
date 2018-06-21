@@ -10,7 +10,7 @@ var newProudauct = mongoose.Schema({
         required:true
     },
     dis:{
-        type:String,
+        type: String,
         required:true
     },
     categories:{
@@ -32,7 +32,8 @@ var newProudauct = mongoose.Schema({
     colors:{
         type:Array,
         required:true
-    }    
+    },
+    updated_date: { type: Date, default: Date.now }
 
 });
 

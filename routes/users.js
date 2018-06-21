@@ -27,10 +27,12 @@ router.post('/login', (req, res, next) => {
     User.getUserByUsername(username, (err, user) => {
       if(err) throw err;
       if(!user) {
-        return res.json({success: false, msg: 'User not found'});
+        return res.json({success: false, errMSG: 'User not found'});
       }
       User.comparePassword(password, user.password, (err, isMatch) => {
-        if(err) throw err;
+        if(err) {
+        return  res.json({success: false, errMSG: 'somthig wrong  plz try agean later'})
+        }
         if(isMatch) {
           const token = jwt.sign({data: user}, config.secret, {
             expiresIn: 604800 // 1 week
@@ -46,7 +48,7 @@ router.post('/login', (req, res, next) => {
             }
           })
         } else {
-          return res.json({success: false, msg: 'Wrong password'});
+          return res.json({success: false, errMSG: 'Wrong password'});
         }
       });
     });
