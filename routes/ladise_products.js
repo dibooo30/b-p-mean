@@ -15,17 +15,20 @@ var im = require('imagemagick');
 
 // get all sharts & Tsherts
 router.get('/dresses/:id', (req, res, next)=>{
-    Dresses.findByIdAndRemove(req.params.id, (err, jeans)=>{
+    Dresses.findByIdAndRemove(req.params.id, (err, product)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
-            for (const i of jeans.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-              console.log(i);
-        }
-        res.json({success:true, data: jeans})
+// to remove product images from src folder
+            for (const i of product.images) {
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
         }
     })
 }); // end get all sharts & Tsherts
@@ -36,14 +39,16 @@ router.get('/accesories/:id', (req, res, next)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
+// to remove product images from src folder
             for (const i of product.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-              console.log(i);
-        }
-        res.json({success:true, data: product})
-
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
         }
     })
 }); // end get all sharts & Tsherts
@@ -54,46 +59,57 @@ router.get('/shoes/:id', (req, res, next)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
+            // to remove product images from src folder
             for (const i of product.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-              console.log(i);
-        }
-        res.json({success:true, data: product})
-
-        }
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
+            }
     })
 }); // end get all sharts & Tsherts
 // get all sharts & Tsherts
 router.get('/bags/:id', (req, res, next)=>{
-    Bags.findByIdAndRemove(req.params.id, (err, shoes)=>{
+    Bags.findByIdAndRemove(req.params.id, (err, product)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
-            for (const i of shoes.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-        }
-            res.json({success:true, data: shoes})
-        }
+// to remove product images from src folder
+            for (const i of product.images) {
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+
+                } // end remove product images from src folder
+                res.json({success:true, data:'removed success'})
+            }
     })
 }); // end get all sharts & Tsherts
 
 // get all skirts
 router.get('/skirts/:id', (req, res, next)=>{
-    Skirts.findByIdAndRemove(req.params.id, (err, shoes)=>{
+    Skirts.findByIdAndRemove(req.params.id, (err, product)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
-            for (const i of shoes.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-        }
-            res.json({success:true, data: shoes})
-        }
+// to remove product images from src folder
+            for (const i of product.images) {
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
+            }
     })
 }); // end get all sharts & Tsherts
 //////////////////////////////////////////// start get data ////////////////////////////////////
@@ -174,7 +190,7 @@ const storage = multer.diskStorage({
         callback(null, 'public/src/')
     },
     filename: function(req, file, cd){
-        cd(null, file.filename + '-' + Date.now() + path.extname(file.originalname));
+        cd(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
   })// end path to save images & rename images
 
@@ -209,9 +225,21 @@ router.post('/shoes', (req, res, next)=>{
             res.json({success:false, errMSG: err.message});
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }                 
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }                
                 var sp_category = req.body.sp_category,
                     category = req.body.category,
                     price      = parseInt(req.body.price),
@@ -227,9 +255,9 @@ router.post('/shoes', (req, res, next)=>{
                     price:price,
                     dis:dis,
                     title:title,
-                    size_41:size_36,
-                    size_42:size_37,
-                    size_43:size_38,
+                    size_36:size_36,
+                    size_37:size_37,
+                    size_38:size_38,
                     images:req_images
                 })//end create new schema
 // save new schema to mongose
@@ -251,9 +279,21 @@ router.post('/dresses', (req, res, next)=>{
           res.json({success:false, errMSG:err.message})
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }                 
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }               
                 var sp_category = req.body.sp_category,
                     category = req.body.category,
                     price         = parseInt(req.body.price),
@@ -293,8 +333,20 @@ router.post('/skirts', (req, res, next)=>{
             res.json({success:false, errMSG: err.message});
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
             }                 
                 var sp_category = req.body.sp_category,
                     category    = req.body.category,
@@ -336,9 +388,21 @@ router.post('/accesories', (req, res, next)=>{
             res.json({success:false, errMSG: err.message});
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }              
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }             
                 var sp_category = req.body.sp_category,
                     category    = req.body.category,
                     price       = parseInt(req.body.price),
@@ -374,9 +438,21 @@ router.post('/bags', (req, res, next)=>{
             res.json({success:false, errMSG: err.message});
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }              
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }             
                 var sp_category = req.body.sp_category,
                     category    = req.body.category,
                     price       = parseInt(req.body.price),
@@ -406,4 +482,44 @@ router.post('/bags', (req, res, next)=>{
 }) // end post new jeans
 ///////////////////////////////// end post data //////////////////////////
 
+// get all sharts & Tsherts
+router.post('/shoes/:id/edit', (req, res, next)=>{
+    var j =  req.body.qut,
+        req_qut = req.body.size;
+    Shoes.findById(req.params.id, (err, product)=>{
+        if (err) {
+            res.json({success:false, errMSG:err.message})
+        }else{
+           if (req_qut === 'size_38') {
+            if (product.size_38 <=0) {
+                product.size_38 = 0;
+                return res.json({data:'no items'})
+                }
+                product.size_38 -= 1;
+                product.save()
+                res.json({success:true, data:product})
+
+            }
+            if(req_qut === 'size_37') {
+                if (product.size_37 <=0) {
+                    product.size_37 = 0;
+                    return res.json({data:'no items'})
+                    }
+                    product.size_37 -= 1;
+                    product.save()
+                    res.json({success:true, data:product})
+            }
+            if(req_qut === 'size_36') {
+                if (product.size_36 <=0) {
+                    product.size_36 = 0;
+                    return res.json({data:'no items'})
+                    }
+                    product.size_36 -= 1;
+                    product.save()
+                    res.json({success:true, data:product})
+            }
+
+        }
+    })
+}); // end get all sharts & Tsherts
 module.exports = router;

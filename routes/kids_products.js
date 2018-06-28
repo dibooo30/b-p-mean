@@ -12,17 +12,20 @@ var im = require('imagemagick');
 
 // get all sharts & Tsherts
 router.get('/baby_girls/:id', (req, res, next)=>{
-    Baby_Girls.findByIdAndRemove(req.params.id, (err, jeans)=>{
+    Baby_Girls.findByIdAndRemove(req.params.id, (err, product)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
-            for (const i of jeans.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-              console.log(i);
-        }
-        res.json({success:true, data: jeans})
+// to remove product images from src folder
+            for (const i of product.images) {
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
         }
     })
 }); // end get all sharts & Tsherts
@@ -33,14 +36,16 @@ router.get('/baby_boys/:id', (req, res, next)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
+// to remove product images from src folder
             for (const i of product.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-              console.log(i);
-        }
-        res.json({success:true, data: product})
-
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
         }
     })
 }); // end get all sharts & Tsherts
@@ -51,14 +56,16 @@ router.get('/baby_cars/:id', (req, res, next)=>{
         if (err) {
             res.json({success:false, errMSG:err.message})
         }else{
+// to remove product images from src folder
             for (const i of product.images) {
-            fs.unlink('./public/src/'+i, (err) => {
-                if (err) throw err;
-              });
-              console.log(i);
-        }
-        res.json({success:true, data: product})
-
+                fs.unlink('./public/src/'+i, (err) => {
+                    if (err) throw err;
+                    });
+                fs.unlink('./public/build/small_'+i, (err) => {
+                    if (err) throw err;
+                });
+                } // end remove product images from src folder
+            res.json({success:true, data:'removed success'})
         }
     })
 }); // end get all sharts & Tsherts
@@ -118,7 +125,7 @@ const storage = multer.diskStorage({
         callback(null, 'public/src/')
     },
     filename: function(req, file, cd){
-        cd(null, file.filename + '-' + Date.now() + path.extname(file.originalname));
+        cd(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
   })// end path to save images & rename images
 
@@ -152,18 +159,30 @@ router.post('/baby_girls', (req, res, next)=>{
         if(err)  {
             res.json({success:false, errMSG: err.message});
         } else{
-            var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }                 
-                var sp_category = req.body.sp_category,
-                    category = req.body.category,
-                    price      = parseInt(req.body.price),
-                    title      = req.body.title,
-                    dis        = req.body.dis,
-                    small_qut     = parseInt(req.body.small_qut),
-                    mideam_qut    = parseInt(req.body.mideam_qut),
-                    large_qut     = parseInt(req.body.large_qut);
+            var req_images = [];  
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }
+            var sp_category = req.body.sp_category,
+                category = req.body.category,
+                price      = parseInt(req.body.price),
+                title      = req.body.title,
+                dis        = req.body.dis,
+                small_qut     = parseInt(req.body.small_qut),
+                mideam_qut    = parseInt(req.body.mideam_qut),
+                large_qut     = parseInt(req.body.large_qut);
 // create new schema
                 var newBabyGirls = new Baby_Girls({
                     category:category,
@@ -175,7 +194,7 @@ router.post('/baby_girls', (req, res, next)=>{
                     mideam_qut:mideam_qut,
                     large_qut:large_qut,
                     images:req_images
-                })//end create new schema
+                    })//end create new schema
 // save new schema to mongose
                 Baby_Girls.create(newBabyGirls, (err)=>{
                     if (err) {
@@ -195,9 +214,21 @@ router.post('/baby_boys', (req, res, next)=>{
           res.json({success:false, errMSG:err.message})
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }                 
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }             
                 var sp_category = req.body.sp_category,
                     category = req.body.category,
                     price         = parseInt(req.body.price),
@@ -237,9 +268,21 @@ router.post('/baby_cars', (req, res, next)=>{
             res.json({success:false, errMSG: err.message});
         } else{
             var req_images = [];
-            for (const file of req.files) {
-                req_images.push(file.filename)
-            }                 
+            for (const image of req.files) {
+                req_images.push(image.filename);
+                im.resize({
+                    srcPath:  process.cwd() + '/public/src/' + image.filename,
+                    dstPath:  process.cwd() + '/public/build/small_'+image.filename,
+                    width:80
+                  }, function(err, stdout, stderr){
+                    if (err) {
+                        console.log('error while resizing images' + stderr);
+                        throw err;
+                    }else{
+                        console.log('resize done')
+                    }
+                  });
+            }                
                 var sp_category = req.body.sp_category,
                     category    = req.body.category,
                     price       = parseInt(req.body.price),

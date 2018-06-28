@@ -2,11 +2,14 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
-
 var newUser = mongoose.Schema({
     username:{
         type:String,
         required:true
+    },
+    image:{
+      type:String,
+      require:true
     },
     password:{
         type:String,
@@ -15,6 +18,9 @@ var newUser = mongoose.Schema({
     email:{
         type:String,
         required:true
+    },
+    invok:{
+      type:Array
     },
     updated_date: { type: Date, default: Date.now }
 });
